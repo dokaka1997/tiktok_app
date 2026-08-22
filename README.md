@@ -10,25 +10,24 @@ Không phụ thuộc framework, CDN hay build step nào — 3 file HTML + 1 file
 
 ---
 
-## Bước 1 — Điền các chỗ còn để trống
+## Bước 1 — Các giá trị đã điền ✅ (23/08/2026)
 
-Tìm và thay toàn bộ các token `[[...]]` trong `index.html`, `terms.html`, `privacy.html`:
-
-| Token | Điền gì |
+| Chỗ | Giá trị đang dùng |
 |---|---|
-| `[[OPERATOR_NAME]]` | Tên bạn hoặc tên công ty đứng ra vận hành (VD: `Do Dao`) |
-| `[[CONTACT_EMAIL]]` | Email liên hệ — **phải là email thật, reviewer có thể gửi thư tới** |
-| `[[GOVERNING_LAW_COUNTRY]]` | Luật nước nào điều chỉnh (VD: `Vietnam`) |
-| `[[HOSTING_LOCATION]]` | Nơi đặt dữ liệu (VD: `Vietnam`) |
+| Đơn vị vận hành | `Do Dao` |
+| Email liên hệ | `dokaka1997@gmail.com` |
+| Luật điều chỉnh | `Vietnam` |
+| Nơi đặt dữ liệu | `Vietnam` |
 
-Kiểm tra còn sót không:
+Không còn token `[[...]]` nào. Kiểm tra lại bất cứ lúc nào:
 
 ```bash
 grep -rn "\[\[" /d/Code/legal-site
 ```
 
-Ngoài ra, tên **ToolHay** đang dùng xuyên suốt 3 file. Nếu trong TikTok Developer Portal bạn khai
-tên app khác thì đổi lại cho **khớp tuyệt đối** — reviewer đối chiếu tên app với nội dung trang, lệch tên là một lý do bị trả về.
+Tên **ToolHay** đang dùng xuyên suốt 3 file. Nếu trong TikTok Developer Portal bạn khai tên app khác
+thì đổi lại cho **khớp tuyệt đối** — reviewer đối chiếu tên app với nội dung trang, lệch tên là một
+lý do bị trả về.
 
 ## Bước 2 — Đưa lên GitHub Pages (miễn phí)
 
