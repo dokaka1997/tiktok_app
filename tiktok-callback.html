@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Không gửi Referer đi đâu cả: URL này mang theo authorization code của TikTok. -->
+<meta name="referrer" content="no-referrer">
+<title>TikTok callback — ToolHay</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  code.big {
+    display: block;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  button {
+    font: inherit;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .err { color: #dc2626; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>TikTok callback</h1>
+  <p class="meta">Trang trung chuyển — không lưu trữ gì, không gửi dữ liệu đi đâu.</p>
+</header>
+
+<div id="app">
+  <p>Đang xử lý…</p>
+</div>
+
+<div class="callout">
+  <strong>Vì sao cần trang này?</strong> TikTok chỉ chấp nhận redirect URI là <code>https</code> và
+  nằm trong URL property đã xác minh, nên không trỏ thẳng về <code>http://localhost</code> được như
+  Google/Facebook. Trang tĩnh này nhận <code>code</code> rồi chuyển tiếp về dashboard chạy ở máy
+  bạn. Toàn bộ xử lý nằm trong trình duyệt của bạn — mã không đi qua máy chủ nào khác.
+</div>
+
+<footer>
+  ToolHay · <a href="index.html">Home</a> · <a href="terms.html">Terms of Service</a> ·
+  <a href="privacy.html">Privacy Policy</a>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  // Nơi dashboard đang chạy. Đổi ở đây nếu FE chạy cổng khác, hoặc thêm ?target=... vào URL.
+  var DEFAULT_TARGET = 'http://localhost:5173/tiktok-callback';
+
+  var params = new URLSearchParams(window.location.search);
+  var app = document.getElementById('app');
+
+  function el(html) { app.innerHTML = html; }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  var error = params.get('error');
+  var code = params.get('code');
+  var state = params.get('state');
+
+  if (error) {
+    el('<h2 class="err">TikTok trả về lỗi</h2>'
+      + '<code class="big">' + escapeHtml(error) + '</code>'
+      + '<p>' + escapeHtml(params.get('error_description') || '') + '</p>'
+      + '<p>Quay lại dashboard và thử liên kết lại.</p>');
+    return;
+  }
+
+  if (!code) {
+    el('<h2>Không có mã uỷ quyền</h2>'
+      + '<p>Trang này chỉ dùng làm redirect URI cho luồng đăng nhập TikTok. '
+      + 'Mở trực tiếp thì không có gì để xử lý.</p>');
+    return;
+  }
+
+  // Chỉ cho phép chuyển tiếp về localhost/127.0.0.1 - chặn việc ai đó gắn ?target=<web lạ>
+  // vào link rồi lừa nạn nhân bấm, khiến authorization code bị đẩy sang máy chủ của họ.
+  var target = params.get('target') || DEFAULT_TARGET;
+  var ok = false;
+  try {
+    var u = new URL(target);
+    ok = (u.hostname === 'localhost' || u.hostname === '127.0.0.1');
+  } catch (e) {
+    ok = false;
+  }
+  if (!ok) target = DEFAULT_TARGET;
+
+  var forwardTo = target
+    + (target.indexOf('?') === -1 ? '?' : '&')
+    + 'code=' + encodeURIComponent(code)
+    + (state ? '&state=' + encodeURIComponent(state) : '');
+
+  el('<h2>Đã nhận uỷ quyền từ TikTok</h2>'
+    + '<p>Đang chuyển về dashboard…</p>'
+    + '<p><a href="' + escapeHtml(forwardTo) + '">Bấm vào đây nếu không tự chuyển</a></p>'
+    + '<h3>Mã uỷ quyền (dự phòng)</h3>'
+    + '<p>Dùng khi dashboard chưa chạy — mở dashboard rồi dán mã này vào ô liên kết tài khoản. '
+    + 'Mã chỉ có hiệu lực vài phút.</p>'
+    + '<code class="big" id="code">' + escapeHtml(code) + '</code>'
+    + '<button id="copy" type="button">Sao chép mã</button>');
+
+  document.getElementById('copy').addEventListener('click', function () {
+    var btn = this;
+    navigator.clipboard.writeText(code).then(function () {
+      btn.textContent = 'Đã sao chép';
+    }, function () {
+      btn.textContent = 'Không sao chép được — bôi đen thủ công';
+    });
+  });
+
+  // Chuyển tiếp sau một nhịp ngắn để người dùng kịp thấy mã dự phòng nếu localhost không chạy.
+  setTimeout(function () { window.location.replace(forwardTo); }, 1200);
+})();
+</script>
+</body>
+</html>
